@@ -1,5 +1,5 @@
 const positionsForMe = {
-	1: [20, 616]
+	1: [120, 640 - 42.4]
 }
 const KEY_UP = 38;
 const KEY_RIGHT = 39;
@@ -38,11 +38,12 @@ class Me {
 
 	_draw_parallelogram(ctx) {
 		const sign = this.xVel > epsilon ? 1 : -1;
+		const start_y = this.y + 2 * this.circleRadius + this.circleOffset
 		ctx.beginPath();
-		ctx.moveTo(this.x + sign * this.paraOffset, this.y);
-		ctx.lineTo(this.x + this.bodyWidth + sign * this.paraOffset, this.y);
-		ctx.lineTo(this.x + this.bodyWidth, this.y + this.bodyHeight);
-		ctx.lineTo(this.x, this.y + this.bodyHeight);
+		ctx.moveTo(this.x + sign * this.paraOffset, start_y);
+		ctx.lineTo(this.x + this.bodyWidth + sign * this.paraOffset, start_y);
+		ctx.lineTo(this.x + this.bodyWidth, start_y + this.bodyHeight);
+		ctx.lineTo(this.x, start_y + this.bodyHeight);
 		ctx.closePath();
 		ctx.fill();
 	}
@@ -50,70 +51,71 @@ class Me {
 	draw(ctx) {
 		ctx.fillStyle = this.fillStyle;
 		const circleX = this.x + this.bodyWidth / 2;
-		const circleY = this.y - this.circleRadius - this.circleOffset;
+		const circleY = this.y + this.circleRadius;
 
 		ctx.beginPath();
 		ctx.arc(circleX, circleY, this.circleRadius, 0, 2 * Math.PI, true);
 		ctx.fill();
 		ctx.closePath();
 		if (this.xVel > -epsilon && this.xVel < epsilon) {
-			ctx.fillRect(this.x, this.y, this.bodyWidth, this.bodyHeight);
+			ctx.fillRect(this.x, this.y + 2 * this.circleRadius + this.circleOffset, this.bodyWidth, this.bodyHeight);
 		} else {
 			this._draw_parallelogram(ctx);
 		}
 	}
 
-	collisionCheck(box) {
-		const vX = (this.x + (this.width) / 2) - (box.x + (box.width / 2));
-		const vY = (this.y + (this.height) / 2) - (box.y + (box.height / 2));
-		const hWidth = (this.width) / 2 + box.width / 2;
-		const hHeight = (this.height) / 2 + box.height / 2;
-		var colDir = "";
+	_rectCollisionCheck(box) {
+		if (this.x < box.x + box.width && this.x + this.width > box.x &&
+			this.y < box.y + box.height && this.y + this.height > box.y) {
+			return true;
+		}
+		return false;
+	}
 
-		if (Math.abs(vX) < hWidth && Math.abs(vY) < hHeight) {
-			const oX = hWidth - Math.abs(vX);
-			const oY = hHeight - Math.abs(vY);
-			if (oX >= oY) {
-				colDir = (vY > 0) ? "t" : "b";
-				this.y += (vY > 0) ? oY : -oY;
-			} else {
-				colDir = (vX > 0) ? "l" : "r";
-				this.x += (vX > 0) ? oX : -oX;
-			}
+	_intersectRectangle(box) {
+		const x = Math.max(this.x, box.x);
+		const num_one = Math.min(this.x + this.width, box.x + box.width);
+		const y = Math.max(this.y, box.y);
+		const num_two = Math.min(this.y + this.height, box.y + box.height);
+		return new Box(x, y, num_one - x, num_two - y);
+	}
+
+	collisionCheck(box) {
+		var colDir = "";
+		if (!this._rectCollisionCheck(box)) {
+			return colDir;
+		} 
+		const intersectRect = this._intersectRectangle(box);
+
+		if (this.y + this.height > box.y) { // Intersecting me bottom
+			this.y -= intersectRect.height;
+			colDir = "b";
+		} else if (this.y < box.y + box.height) { // Intersecting me top
+			this.y += intersectRect.height;
+			colDir = "t";
 		}
 		return colDir;
 	}
 
 	_boundsCheck(boxes) {
-		console.log(boxes);
 		this.grounded = false;
 		for (var i = 0; i < boxes.length; i++) {
-			const dir = this.collisionCheck(this, boxes[i]);
-			console.log("direction is " + dir);
+			const dir = this.collisionCheck(boxes[i]);
+			console.log(dir + " " + this.x + " " + this.y + " " + this.xVel + " " + this.yVel);
 			if (dir === "l" || dir === "r") {
-				this.velX = 0;
+				this.xVel = 0;
 				this.jumping = false;
 			} else if (dir === "b") {
 				this.grounded = true;
 				this.jumping = false;
 			} else if (dir === "t") {
-				this.velY *= -1;
+				this.yVel *= -1;
 			}
 		}
 
 		if (this.grounded) {
-			this.velY = 0;
+			this.yVel = 0;
 		}
-
-		// if (this.x >= this.widthBound - this.bodyWidth) {
-		// 	this.x = this.widthBound - this.bodyWidth;
-		// } else if (this.x <= 0) {
-		// 	this.x = 0;
-		// }
-		// if (this.y >= 616) {
-		// 	this.y = 616;
-		// 	this.jumping = false;
-		// }
 	}
 
 	update(keys, boxes) {
@@ -137,14 +139,10 @@ class Me {
 
 		this.xVel *= this.friction;
 		this.yVel += this.gravity;
-
-		this._boundsCheck(boxes);
-
 		this.x += this.xVel;
 		this.y += this.yVel;
 
-		console.log(this.x + " " + this.y)
-
+		this._boundsCheck(boxes);
 	}
 }
 
