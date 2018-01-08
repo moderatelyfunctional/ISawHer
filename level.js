@@ -1,7 +1,7 @@
 // data format: [x, y, width, height]
 const positionsForLevel = {
-	1: [new Box(0, 640, 200, 20),
-		new Box(120, 520, 200, 20)]
+	1: [new Box(0, 640, 200, 10),
+		new Box(120, 520, 200, 14)]
 }
 
 class Level {

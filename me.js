@@ -1,5 +1,5 @@
 const positionsForMe = {
-	1: [20, 640 - 42.4 - 60]
+	1: [20, 640 - 42.4]
 }
 const KEY_UP = 38;
 const KEY_RIGHT = 39;
@@ -82,19 +82,25 @@ class Me {
 
 // https://gamedev.stackexchange.com/questions/13774/how-do-i-detect-the-direction-of-2d-rectangular-object-collisions
 	_collideFromLeft(prevPosition, box) {
-
+		const prevRight = prevPosition.x + prevPosition.width;
+		const currRight = this.x + this.width;
+		return prevRight < box.x && currRight >= box.x;
 	}
 
 	_collideFromRight(prevPosition, box) {
-		
+		const boxRight = box.x + box.width;
+		return prevPosition.x >= boxRight && this.left < boxRight;
 	}
 
 	_collideFromTop(prevPosition, box) {
-		
+		const prevBottom = prevPosition.y + prevPosition.height;
+		const currBottom = this.y + this.height;
+		return prevBottom < box.y && currBottom >= box.y;
 	}
 
 	_collideFromBottom(prevPosition, box) {
-		
+		const boxBottom = box.y + box.height;
+		return prevPosition.y >= boxBottom && this.y < boxBottom
 	}
 
 	collisionCheck(prevPosition, box) {
@@ -103,10 +109,10 @@ class Me {
 			return colDir;
 		} 
 		const intersectRect = this._intersectRectangle(box);
-		if (this.y < box.y + box.height) { // Intersecting me bottom
+		if (this.y < box.y) { // Intersecting me bottom
 			this.y -= intersectRect.height;
 			colDir = "b";
-		} else if (this.y >= box.y + box.height) { // Intersecting me top
+		} else if (this.y > box.y) { // Intersecting me top
 			this.y += intersectRect.height;
 			colDir = "t";
 		} else if (this.x < box.x) { // Intsersecting me right
@@ -124,7 +130,6 @@ class Me {
 		this.grounded = false;
 		for (var i = 0; i < boxes.length; i++) {
 			const dir = this.collisionCheck(prevPosition, boxes[i]);
-			console.log("dir " + "index " + i + " " + dir);
 			if (dir === "l" || dir === "r") {
 				this.xVel = 0;
 				this.jumping = false;
