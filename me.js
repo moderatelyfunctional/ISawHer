@@ -6,6 +6,8 @@ const KEY_RIGHT = 39;
 const KEY_LEFT = 37;
 const KEY_SPACE = 32;
 
+const epsilon = 4e-1;
+
 class Me {
 	constructor(level, widthBound, heightBound) {
 		this.level = level;
@@ -25,8 +27,20 @@ class Me {
 		this.bodyWidth = 12;
 		this.bodyHeight = 24;
 		this.circleOffset = 4;
+		this.paraOffset = 2;
 		this.circleRadius = this.bodyWidth * .6;
 		this.fillStyle = "#5ccfe6";
+	}
+
+	_draw_parallelogram(ctx) {
+		const sign = this.xVel > epsilon ? 1 : -1;
+		ctx.beginPath();
+		ctx.moveTo(this.x + sign * this.paraOffset, this.y);
+		ctx.lineTo(this.x + this.bodyWidth + sign * this.paraOffset, this.y);
+		ctx.lineTo(this.x + this.bodyWidth, this.y + this.bodyHeight);
+		ctx.lineTo(this.x, this.y + this.bodyHeight);
+		ctx.closePath();
+		ctx.fill();
 	}
 
 	draw(ctx) {
@@ -38,7 +52,11 @@ class Me {
 		ctx.arc(circleX, circleY, this.circleRadius, 0, 2 * Math.PI, true);
 		ctx.fill();
 		ctx.closePath();
-		ctx.fillRect(this.x, this.y, this.bodyWidth, this.bodyHeight);
+		if (this.xVel > -epsilon && this.xVel < epsilon) {
+			ctx.fillRect(this.x, this.y, this.bodyWidth, this.bodyHeight);
+		} else {
+			this._draw_parallelogram(ctx);
+		}
 	}
 
 	_boundsCheck() {
@@ -81,7 +99,7 @@ class Me {
 	}
 
 	colCheck(object) {
-		
+
 	}
 }
 
