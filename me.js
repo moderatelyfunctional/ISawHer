@@ -22,6 +22,7 @@ class Me {
 		
 		this.friction = 0.85;
 		this.jumping = false;
+		this.grounded = false;
 		this.gravity = 0.18;
 
 		this.bodyWidth = 12;
@@ -30,6 +31,9 @@ class Me {
 		this.paraOffset = 2;
 		this.circleRadius = this.bodyWidth * .6;
 		this.fillStyle = "#5ccfe6";
+
+		this.width = this.bodyWidth + this.paraOffset;
+		this.height = this.bodyHeight + this.circleOffset + this.circleRadius * 2;
 	}
 
 	_draw_parallelogram(ctx) {
@@ -59,22 +63,64 @@ class Me {
 		}
 	}
 
-	_boundsCheck() {
-		if (this.x >= this.widthBound - this.bodyWidth) {
-			this.x = this.widthBound - this.bodyWidth;
-		} else if (this.x <= 0) {
-			this.x = 0;
+	collisionCheck(box) {
+		const vX = (this.x + (this.width) / 2) - (box.x + (box.width / 2));
+		const vY = (this.y + (this.height) / 2) - (box.y + (box.height / 2));
+		const hWidth = (this.width) / 2 + box.width / 2;
+		const hHeight = (this.height) / 2 + box.height / 2;
+		var colDir = "";
+
+		if (Math.abs(vX) < hWidth && Math.abs(vY) < hHeight) {
+			const oX = hWidth - Math.abs(vX);
+			const oY = hHeight - Math.abs(vY);
+			if (oX >= oY) {
+				colDir = (vY > 0) ? "t" : "b";
+				this.y += (vY > 0) ? oY : -oY;
+			} else {
+				colDir = (vX > 0) ? "l" : "r";
+				this.x += (vX > 0) ? oX : -oX;
+			}
 		}
-		if (this.y >= 616) {
-			this.y = 616;
-			this.jumping = false;
-		}
+		return colDir;
 	}
 
-	update(keys) {
+	_boundsCheck(boxes) {
+		console.log(boxes);
+		this.grounded = false;
+		for (var i = 0; i < boxes.length; i++) {
+			const dir = this.collisionCheck(this, boxes[i]);
+			console.log("direction is " + dir);
+			if (dir === "l" || dir === "r") {
+				this.velX = 0;
+				this.jumping = false;
+			} else if (dir === "b") {
+				this.grounded = true;
+				this.jumping = false;
+			} else if (dir === "t") {
+				this.velY *= -1;
+			}
+		}
+
+		if (this.grounded) {
+			this.velY = 0;
+		}
+
+		// if (this.x >= this.widthBound - this.bodyWidth) {
+		// 	this.x = this.widthBound - this.bodyWidth;
+		// } else if (this.x <= 0) {
+		// 	this.x = 0;
+		// }
+		// if (this.y >= 616) {
+		// 	this.y = 616;
+		// 	this.jumping = false;
+		// }
+	}
+
+	update(keys, boxes) {
 		if (keys[KEY_UP] || keys[KEY_SPACE]) {
-			if (!this.jumping) {
+			if (!this.jumping && this.grounded) {
 				this.jumping = true;
+				this.grounded = false;
 				this.yVel = -2.5 * this.speed;
 			}
 		}
@@ -92,13 +138,12 @@ class Me {
 		this.xVel *= this.friction;
 		this.yVel += this.gravity;
 
+		this._boundsCheck(boxes);
+
 		this.x += this.xVel;
 		this.y += this.yVel;
 
-		this._boundsCheck();
-	}
-
-	colCheck(object) {
+		console.log(this.x + " " + this.y)
 
 	}
 }

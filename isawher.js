@@ -30,15 +30,53 @@ window.onload = function() {
 	var me = new Me(currLevelIndex, width, height);
 
 	function draw() {
-		me.update(keys);
+		me.update(keys, currLevel.blocks);
 
 
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		currLevel.draw(ctx);
 		me.draw(ctx);
 
-		requestAnimationFrame(draw);
+		// requestAnimationFrame(draw);
 	}
 
 	draw();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
