@@ -37,7 +37,7 @@ window.onload = function() {
 		currLevel.draw(ctx);
 		me.draw(ctx);
 
-		// requestAnimationFrame(draw);
+		requestAnimationFrame(draw);
 	}
 
 	draw();

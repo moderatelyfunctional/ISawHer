@@ -1,5 +1,5 @@
 const positionsForMe = {
-	1: [120, 640 - 42.4]
+	1: [20, 640 - 42.4 - 60]
 }
 const KEY_UP = 38;
 const KEY_RIGHT = 39;
@@ -80,28 +80,51 @@ class Me {
 		return new Box(x, y, num_one - x, num_two - y);
 	}
 
-	collisionCheck(box) {
+// https://gamedev.stackexchange.com/questions/13774/how-do-i-detect-the-direction-of-2d-rectangular-object-collisions
+	_collideFromLeft(prevPosition, box) {
+
+	}
+
+	_collideFromRight(prevPosition, box) {
+		
+	}
+
+	_collideFromTop(prevPosition, box) {
+		
+	}
+
+	_collideFromBottom(prevPosition, box) {
+		
+	}
+
+	collisionCheck(prevPosition, box) {
 		var colDir = "";
 		if (!this._rectCollisionCheck(box)) {
 			return colDir;
 		} 
 		const intersectRect = this._intersectRectangle(box);
-
-		if (this.y + this.height > box.y) { // Intersecting me bottom
+		if (this.y < box.y + box.height) { // Intersecting me bottom
 			this.y -= intersectRect.height;
 			colDir = "b";
-		} else if (this.y < box.y + box.height) { // Intersecting me top
+		} else if (this.y >= box.y + box.height) { // Intersecting me top
 			this.y += intersectRect.height;
 			colDir = "t";
+		} else if (this.x < box.x) { // Intsersecting me right
+			this.x -= intersectRect.width;
+			colDir = "r";
+		} else { // Intersecting me left
+			this.x += intersectRect.width; 
+			colDir = "l";
 		}
+
 		return colDir;
 	}
 
-	_boundsCheck(boxes) {
+	_boundsCheck(prevPosition, boxes) {
 		this.grounded = false;
 		for (var i = 0; i < boxes.length; i++) {
-			const dir = this.collisionCheck(boxes[i]);
-			console.log(dir + " " + this.x + " " + this.y + " " + this.xVel + " " + this.yVel);
+			const dir = this.collisionCheck(prevPosition, boxes[i]);
+			console.log("dir " + "index " + i + " " + dir);
 			if (dir === "l" || dir === "r") {
 				this.xVel = 0;
 				this.jumping = false;
@@ -137,12 +160,13 @@ class Me {
 			}
 		}
 
+		const prevPosition = [this.xVel, this.yVel];
 		this.xVel *= this.friction;
 		this.yVel += this.gravity;
 		this.x += this.xVel;
 		this.y += this.yVel;
 
-		this._boundsCheck(boxes);
+		this._boundsCheck(prevPosition, boxes);
 	}
 }
 
